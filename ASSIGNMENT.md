@@ -244,12 +244,14 @@ This section describes the minimum functionality we expect your implementation t
    2. (1 point) Parenthesis '()', used for grouping operations.
    3. (4 points) Object indexing, both identifier `.field` and generic `.["field"]`.  
       If the field doesn't exist, running the filter should return `null`.
+      In this case "generic" means for all field names, as opposed to "identifier-like".
+      For fully generic field access look at the first one of the advanced tasks.
    4. (3 points) Optional object indexing `.field?` (and `.["field"]?`), which doesn't rise an exception if the value indexed into isn't an object.
    5. (4 points) Array index and slice `.[0]`, `.[0:10]`.  
      Slices behave very similarly to Python or Go.
    6. (6 points) Array/Object Value Iterator `.[]`, `.[1,2,3]`.  
      When applied to an array, the `.[]` filter iterates over its elements, and when applied on an object it iterates over its values (*not* over the keys).
-     `.[1,2,3]` returns an iterator which goes over the first, second and third elements.
+     `.[0,1,2]` returns an iterator which goes over the first, second and third elements.
    7. (4 points) Optional counterparts for indexing, slicing and iterators.
    8. (7 points) Comma operator `op1 , op2`.  
      Returns results of both `op1` and `op2` akin to iterator elements.
@@ -280,6 +282,12 @@ but the total grade is capped at 100%. Please note that the tasks in this
 section require the basic functionality from the previous section to be already
 implemented, so it does not make sense to start on these advanced features
 before you are confident in your implementation of the basic part.
+
+* (3 points) Generic indexing with filters.  
+  A more general counterpart for object and array indexing, allowing arbitrary filters and iterators in the brackets.
+  For example: `echo '{"this" : ["that"], "that" : 1}' | jq '.[.this[]]'`, which returns `1`.  
+  To keep this assignment independent from one with comparison operators below, you are asked to implement indexing with arbitrary filters, which output either numbers/iterators or strings.  
+  In order for this subtask to count your implementation should handle all JSON values, have all basic filters, and all object constructors.
 
 * (5 points) [Recursive descent operator](https://stedolan.github.io/jq/manual/#RecursiveDescent:..) `..` iterates over all sub-values of the current value, including itself.
   For example, `echo [{"a" : 1}] | jq '..'` results in
@@ -331,7 +339,8 @@ The latter is already available as `Parsing.Parsing` module.
 1. Clone repository [https://gitlab.tudelft.nl/bliesnikov/jq-clone/](https://gitlab.tudelft.nl/bliesnikov/jq-clone/). 
 2. Put your name and email in `JqClone.cabal`.
 3. Run `stack build` to build your project and `stack install` to install the `jq-clone` executable.
-4. To run your implementation use `echo <input.json> | jq-clone -- <filter>`
+4. To run your implementation use `echo "<your-input>" | jq-clone "<your-filter>"` or `echo "<your-input>" | stack run -- "<your-filter>"`  
+   Usage of quotation marks is platform-specific: on Windows only `"` is allowed, while on *nix both `'` and `"` work.
 
 ### Testing
 
