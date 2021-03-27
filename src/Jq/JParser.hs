@@ -12,11 +12,13 @@ parseJFloat = JFloat <$> float
 
 parseJInt :: Parser JSON 
 parseJInt = JInt <$> int
+
+parseJBool :: Parser JSON
+parseJBool = JBool <$> bool
              
 
-
 parseJSON :: Parser JSON
-parseJSON = token $ parseJNull <|> parseJFloat <|> parseJInt
+parseJSON = token $ parseJNull <|> parseJFloat <|> parseJInt <|> parseJBool
 
 
 
@@ -45,10 +47,18 @@ float = do f <- nfloat
         <|>
             nfloat 
 
-
+-- scientific notion of integer
 sint :: Parser Int
 sint = do i <- int
           _ <- char 'E' <|> char 'e'
           e <- int
           return (i * (10 ^ e))
+
+
+bool :: Parser Bool
+bool = do b <- string "true" <|> string "false"
+          case b of 
+              "true" -> return True
+              "false" -> return False
+              _ -> empty
           
