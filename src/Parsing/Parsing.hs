@@ -23,21 +23,30 @@ item = P (\inp -> case inp of
 
 instance Functor Parser where
    -- fmap :: (a -> b) -> Parser a -> Parser b
+   -- applys g on the output 
    fmap g p = P (\inp -> case parse p inp of
                             []        -> []
                             [(v,out)] -> [(g v, out)])
 
 instance Applicative Parser where
    -- pure :: a -> Parser a
+   -- wrap a val v into a Parser
    pure v = P (\inp -> [(v,inp)])
 
    -- <*> :: Parser (a -> b) -> Parser a -> Parser b
+   -- pg :: P (String -> [(a->b), String])
    pg <*> px = P (\inp -> case parse pg inp of
                              []        -> []
                              [(g,out)] -> parse (fmap g px) out)
 
 instance Monad Parser where
    -- (>>=) :: Parser a -> (a -> Parser b) -> Parser b
+   {--
+      pattern matching on the result of 'parse p inp'
+      result [] -> []
+      otherwise, apply f on the output v which returns a monad(Parser)
+      then keep parse the left string 'out'
+    --}
    p >>= f = P (\inp -> case parse p inp of
                            []        -> []
                            [(v,out)] -> parse (f v) out)
@@ -49,40 +58,44 @@ instance Alternative Parser where
    empty = P (\inp -> [])
 
    -- (<|>) :: Parser a -> Parser a -> Parser a
+   -- if first parser returns empty then try the second parser
    p <|> q = P (\inp -> case parse p inp of
                            []        -> parse q inp
                            [(v,out)] -> [(v,out)])
 
 -- Derived primitives
-
+-- item >>= (Char -> Parser a)
 sat :: (Char -> Bool) -> Parser Char
 sat p = do x <- item
            if p x then return x else empty
 
 digit :: Parser Char
-digit = sat isDigit
+digit = sat isDigit --if the Char in item is digit
 
 lower :: Parser Char
-lower = sat isLower
+lower = sat isLower -- if the Char in item is lowercase letter
 
 upper :: Parser Char
-upper = sat isUpper
+upper = sat isUpper -- if the Char in item is uppercase letter
 
 letter :: Parser Char
-letter = sat isAlpha
+letter = sat isAlpha -- if the Char in item is letter including upper case and lower case
 
 alphanum :: Parser Char
-alphanum = sat isAlphaNum
+alphanum = sat isAlphaNum -- if the Char in item is a letter or a digit
 
 char :: Char -> Parser Char
-char x = sat (== x)
+char x = sat (== x)  -- wrap a char into Parser(Monad)
 
+-- paser certain string into Parser.
 string :: String -> Parser String
-string []     = return []
-string (x:xs) = do char x
+string []     = return [] -- empty Parser = P([])
+string (x:xs) = do char x -- return value if not needed, only checks if parse success; if not, the entire string parsing fails
                    string xs
-                   return (x:xs)
+                   return (x:xs) -- wrap a string into Parser(Monad)
 
+                   
+-- parser for variable names
 ident :: Parser String
 ident = do x  <- lower
            xs <- many (alphanum <|> char '_')
