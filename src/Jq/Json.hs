@@ -2,8 +2,10 @@ module Jq.Json where
 
 data JSON =
     JNull
-    | JNum {getNum:: Float} -- numbers that may be an intergeral number or a floating point number, support e notation
+    | JFloat {getFloat:: Float} 
+    | JInt {getInt:: Int} 
 
 instance Show JSON where
   show (JNull) = "null"
-  show (JNum f) = show f
+  show (JFloat f) = show f
+  show (JInt i) = show i
