@@ -15,11 +15,18 @@ parseJInt = JInt <$> int
 
 parseJBool :: Parser JSON
 parseJBool = JBool <$> bool
+
+-- TODO: escape character
+parseJStr :: Parser JSON
+parseJStr = do _ <- char '"'
+               s <- many jchar
+               _ <- char '"'
+               return (JString ("\"" ++ s ++ "\""))
+
              
 
 parseJSON :: Parser JSON
-parseJSON = token $ parseJNull <|> parseJFloat <|> parseJInt <|> parseJBool
-
+parseJSON = token $ parseJNull <|> parseJFloat <|> parseJInt <|> parseJBool <|> parseJStr
 
 
 
@@ -62,3 +69,8 @@ bool = do b <- string "true" <|> string "false"
               "false" -> return False
               _ -> empty
           
+isNotQuote :: Char -> Bool 
+isNotQuote c = c /= '"'
+
+jchar :: Parser Char 
+jchar = sat isNotQuote 
