@@ -44,3 +44,11 @@ float = do f <- nfloat
            return (f * (10 ^ e))
         <|>
             nfloat 
+
+
+sint :: Parser Int
+sint = do i <- int
+          _ <- char 'E' <|> char 'e'
+          e <- int
+          return (i * (10 ^ e))
+          
