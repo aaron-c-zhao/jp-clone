@@ -29,13 +29,14 @@ parseJArray = do _ <- char '['
                  _ <- char ']'
                  return (JArray (es ++ [e]))
 
+
 parseJObject :: Parser JSON
 parseJObject = do _ <- char '{'
-                  key <- parseJStr
-                  _ <- char ':'
-                  val <- parseJSON
+                  kvs <- many $ token jkeypairComma 
+                  kv  <- token jkeypair
                   _ <- char '}'
-                  return (JObject (key, val))
+                  return $ JObject (kvs ++ [kv])
+                  
 
 parseJSON :: Parser JSON
 parseJSON = token $ parseJNull 
@@ -139,6 +140,16 @@ jelement = do e <- parseJSON
               _ <- char ','
               return e
              
+jkeypair :: Parser (String, JSON)
+jkeypair = do key <- parseJStr
+              _ <- char ':'
+              val <- parseJSON
+              return (show key, val)
+
+jkeypairComma :: Parser (String, JSON)
+jkeypairComma = do kv <- jkeypair
+                   _ <- char ','
+                   return kv
              
                     
                     
