@@ -12,19 +12,39 @@ parseJFloat :: Parser JSON
 parseJFloat = JFloat <$> float
 
 parseJInt :: Parser JSON 
-parseJInt = JInt <$> int
+parseJInt = JInt <$> (int <|> sint)
 
 parseJBool :: Parser JSON
 parseJBool = JBool <$> bool
 
--- TODO: escape character
 parseJStr :: Parser JSON
 parseJStr = do _ <- char '"'
                s <- jString 
                return (JString ("\"" ++ s ++ "\""))
 
+parseJArray :: Parser JSON
+parseJArray = do _ <- char '['
+                 es <- many jelement 
+                 e <- parseJSON
+                 _ <- char ']'
+                 return (JArray (es ++ [e]))
+
+parseJObject :: Parser JSON
+parseJObject = do _ <- char '{'
+                  key <- parseJStr
+                  _ <- char ':'
+                  val <- parseJSON
+                  _ <- char '}'
+                  return (JObject (key, val))
+
 parseJSON :: Parser JSON
-parseJSON = token $ parseJNull <|> parseJFloat <|> parseJInt <|> parseJBool <|> parseJStr
+parseJSON = token $ parseJNull 
+    <|> parseJFloat 
+    <|> parseJInt 
+    <|> parseJBool 
+    <|> parseJStr 
+    <|> parseJArray 
+    <|> parseJObject
 
 
 
@@ -112,6 +132,12 @@ jString = do s <- many jchar
                  '\\'   -> (++) s <$> ((++) <$> jescape <*> jString) 
                  '"'    -> return s
                  _      -> return []
+
+
+jelement :: Parser JSON
+jelement = do e <- parseJSON
+              _ <- char ','
+              return e
              
              
                     
