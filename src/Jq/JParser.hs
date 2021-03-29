@@ -32,7 +32,7 @@ parseJArray = do _ <- char '['
 
 parseJObject :: Parser JSON
 parseJObject = do _ <- char '{'
-                  kvs <- many $ token jkeypairComma 
+                  kvs <- many $ token jkeypairComma -- Note since jkeypairComma does not call parseJSON, it has to handle space by itself
                   kv  <- token jkeypair
                   _ <- char '}'
                   return $ JObject (kvs ++ [kv])

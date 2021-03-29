@@ -31,11 +31,6 @@ instance Show JSON where
 --   (JArray (x:xs)) == (JArray (x':xs'))              = (x == x') && (JArray xs) == (JArray xs')
 --   (JKeyPair (key, val)) == (JKeyPair (key', val'))  = key == key' && (val == val')
 
-  
-  
-
-
-
 lowerFirst :: String -> String
 lowerFirst [] = []
 lowerFirst (x:xs) = toLower x : xs
@@ -43,7 +38,6 @@ lowerFirst (x:xs) = toLower x : xs
 
 indent :: Int -> String
 indent n = [' '| _ <- [1..n]]
-
 
 showJArray :: Int -> [JSON] -> String
 showJArray n xs = indent n ++ "[" ++ showContent (n + 2) xs ++ "\n" ++ indent n ++ "]"

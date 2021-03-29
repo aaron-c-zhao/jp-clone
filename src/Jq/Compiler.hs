@@ -6,6 +6,8 @@ import           Jq.Json
 
 type JProgram a = JSON -> Either String a
 
+-- define function (JSON -> Either String [JSON]) for each filter 
+-- inp parameter of JProgram
 compile :: Filter -> JProgram [JSON]
 compile (Identity) inp = return [inp]
 
