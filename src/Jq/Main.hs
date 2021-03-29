@@ -14,9 +14,24 @@ readInput = getContents
 process :: [String] -> String -> Either String String
 process args json = do
   v <- parseConfig $ args
+  {--
+    Left: default value(Either)
+    Right a -> b(b: Either)
+    parse parseJSON json : Maybe
+    if parse success -> Right Just Parser JSON
+    otherwise, default value
+  --}
   obj <- maybe (Left "Coudn't parse JSON") Right $ parse parseJSON $ json
-  let program = compile . filters $ v
-  res <- left ("Coudn't execute the program: " ++) $ run program obj
+  -- filters: record syntax 
+  -- filters v: extract the filters from the Config
+  -- compile accept one filter, thus filter should be a recursive data structure
+  let program = compile . filters $ v  
+  {--
+    run program obj -> Either String [JSON]
+      program: filters
+      obj: json object
+  --}
+  res <- left ("Coudn't execute the program: " ++) $ run program obj 
   return $ concat . map ((++"\n") . show) $ res
 
 processIO :: [String] -> String -> IO (Either String ())

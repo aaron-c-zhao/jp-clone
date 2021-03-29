@@ -94,7 +94,7 @@ string (x:xs) = do char x -- return value if not needed, only checks if parse su
                    string xs
                    return (x:xs) -- wrap a string into Parser(Monad)
 
-                   
+
 -- parser for variable names
 ident :: Parser String
 ident = do x  <- lower
@@ -134,3 +134,6 @@ integer = token int
 
 symbol :: String -> Parser String
 symbol xs = token (string xs)
+
+            
+           
