@@ -117,6 +117,10 @@ space :: Parser ()
 space = do many (sat isSpace)
            return ()
 
+-- take a parser as parameter
+-- ignore any space before the token
+-- apply the parser to the token
+-- skip any space after the token
 token :: Parser a -> Parser a
 token p = do space
              v <- p

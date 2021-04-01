@@ -19,8 +19,7 @@ parseJBool = JBool <$> bool
 
 parseJStr :: Parser JSON
 parseJStr = do _ <- char '"'
-               s <- jString 
-               return (JString ("\"" ++ s ++ "\""))
+               JString <$> jString 
 
 parseJArray :: Parser JSON
 parseJArray = do _ <- char '['

@@ -63,7 +63,7 @@ showKeyPairs n [x]    = showKeyPair n x
 showKeyPairs n (x:xs) = showKeyPair n x ++ showKeyPairs n xs
 
 showKeyPair :: Int -> (String, JSON) -> String
-showKeyPair n (key, val) = "\n" ++ indent (n + 2) ++ key ++ ": " ++ showVal (n + 2) val
+showKeyPair n (key, val) = "\n" ++ indent (n + 2) ++ show key ++ ": " ++ showVal (n + 2) val
   where 
     showVal n' val' = case val' of 
       JArray xs   -> "[" ++ showContent (n' + 2) xs ++ "\n" ++ indent n' ++ "]"
