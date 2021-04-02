@@ -22,11 +22,11 @@ parseJStr = do _ <- char '"'
                JString <$> jString 
 
 parseJArray :: Parser JSON
-parseJArray = do _ <- char '['
+parseJArray = do _  <- char '['
                  es <- many jelement 
-                 e <- parseJSON
-                 _ <- char ']'
-                 return (JArray (es ++ [e]))
+                 e  <- many parseJSON
+                 _  <- char ']'
+                 return (JArray (es ++ e))
 
 
 parseJObject :: Parser JSON

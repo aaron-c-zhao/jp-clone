@@ -40,6 +40,7 @@ indent :: Int -> String
 indent n = [' '| _ <- [1..n]]
 
 showJArray :: Int -> [JSON] -> String
+showJArray n [] = indent n ++ "[" ++ "]"
 showJArray n xs = indent n ++ "[" ++ showContent (n + 2) xs ++ "\n" ++ indent n ++ "]"
 
 showElement :: Int -> JSON -> String

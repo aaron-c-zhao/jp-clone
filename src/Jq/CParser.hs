@@ -35,12 +35,33 @@ parseIdentifier = do
   iden <- parseSimpleIdentifier <|> parseIdentifierGeneric
   Identifier iden <$> parseOptional
 
+
+parseArrayIndex :: Parser Filter
+parseArrayIndex = do
+  _ <- token. char $ '.' 
+  _ <- char '['
+  index <- integer 
+  _ <- char ']'
+  return $ Index index
+  
+
+parseArraySlice :: Parser Filter
+parseArraySlice = do 
+  _     <- token . string $ ".["
+  start <- integer 
+  _     <- char ':'
+  end   <- integer
+  _     <- char ']'
+  return $ Slice start end
+
 parseFilter :: Parser Filter
 parseFilter = parseIdentifier
+  <|> parseArraySlice
+  <|> parseArrayIndex
   <|> parseIdentity
 
 parseConfig :: [String] -> Either String Config
-parseConfig s = case trace (show s) s of -- TODO: delete the trace
+parseConfig s = case s of 
   [] -> Left "No filters provided"
   h : _ -> -- only parse one filter with this case if there's more than one then an error is thrown
     case parse parseFilter h of
