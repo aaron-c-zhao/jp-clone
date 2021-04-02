@@ -294,16 +294,14 @@ before you are confident in your implementation of the basic part.
 
   ```json
   [
-    [
-      {
-        "a": 1
-      }
-    ],
     {
       "a": 1
-    },
-    1
+    }
   ]
+  {
+    "a": 1
+  }
+  1
   ```
   In order for this subtask to count your implementation should handle all JSON and have all basic filters.
 
@@ -311,6 +309,7 @@ before you are confident in your implementation of the basic part.
   * "Equal" and "not equal" operators `==`, `!=`, which take two JSON values and output a Boolean.
   * If-then-else expression `if A then B else C end`.
   * Comparison operators for numbers `<`, `<=`, `>`, `>=`
+  * Logic connectives: `and`, `or`, `not`.
   
    In order for this subtask to count your implementation should handle all JSON values and have all basic filters.
 

@@ -45,6 +45,18 @@ compile (Iterator is b) json             =  case compile (Iterator [] b) json of
     Right js -> return (map (\i -> if i < length js then js !! i else JNull) is)
     Left _   -> Left "Can not index non array"
 
+-- Comma
+compile (Comma f s) json                 =  compile f json >>= (\js -> (++) js <$> compile s json) 
+
+-- Pipe
+compile (Pipe i o) json  =  do
+    is <- compile i json
+    multiCompile o is
+    
+
+multiCompile :: Filter -> [JSON] -> Either String [JSON]
+multiCompile _ []     = Right []
+multiCompile f (j:js) = compile f j >>= (\rs -> (++) rs <$> multiCompile f js)
 
 run :: JProgram [JSON] -> JSON -> Either String [JSON]
 run p j = p j

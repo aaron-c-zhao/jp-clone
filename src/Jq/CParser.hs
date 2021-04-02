@@ -85,14 +85,34 @@ parseCommaSeperatedNum = do i <- integer
                          <|>
                             integer 
 
-
-
-parseFilter :: Parser Filter
-parseFilter = parseIdentifier
+parsePrimitive :: Parser Filter
+parsePrimitive = parseIdentifier
   <|> parseIteratorOptional
   <|> parseArraySliceOptional
   <|> parseArrayIndexOptional
   <|> parseIdentity
+
+
+parseFilter :: Parser Filter
+parseFilter = parsePipe 
+  <|> parseComma
+  <|> parsePrimitive
+
+
+parseComma :: Parser Filter
+parseComma = do f <- parsePrimitive 
+                _ <- token . char $ ','
+                Comma f <$> parseFilter
+                  
+parsePipe :: Parser Filter
+parsePipe = do p <- parsePrimitive
+               _ <- token . char $ '|'
+               Pipe p <$> parseFilter 
+            <|>
+               do p <- parsePrimitive
+                  Pipe p <$> parseFilter
+               
+               
 
 parseConfig :: [String] -> Either String Config
 parseConfig s = case s of 

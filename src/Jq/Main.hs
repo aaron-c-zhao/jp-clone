@@ -33,13 +33,13 @@ process args json = do
       obj: json object
   --}
   res <- left ("Coudn't execute the program: " ++) $ run program obj 
-  return $ concat . map ((++"\n") . show) $ trace (show res) res
+  return $ concat . map ((++"\n") . show) $ res
 
 processIO :: [String] -> String -> IO (Either String ())
 processIO c s = do
   case (process c s) of
     Left e -> return $ Left e
-    Right v -> do putStrLn v; return $ Right ()
+    Right v -> do putStr v; return $ Right ()
 
 getInputs :: IO ([String], String)
 getInputs = do
