@@ -38,7 +38,7 @@ processIO :: [String] -> String -> IO (Either String ())
 processIO c s = do
   case (process c s) of
     Left e -> return $ Left e
-    Right v -> do putStrLn v; return $ Right ()
+    Right v -> do putStr v; return $ Right ()
 
 getInputs :: IO ([String], String)
 getInputs = do
