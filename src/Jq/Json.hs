@@ -6,7 +6,7 @@ data JSON =
     | JFloat {getFloat:: Float} 
     | JInt {getInt:: Int} 
     | JBool {getBool::Bool}
-    | JString {getString::String }
+    | JString {getString::String}
     | JArray {getArray:: [JSON]}
     | JObject {getObject::[(String,JSON)]}
 

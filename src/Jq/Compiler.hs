@@ -5,8 +5,6 @@ import           Jq.Filters
 import           Jq.Json
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Typeable
-import Debug.Trace
 
 
 type JProgram a = JSON -> Either String a
@@ -28,20 +26,21 @@ compile (Identifier _ b) json =
         ++ " is not an Object, it can not be indexed with identifier!"
 
 -- Array index
-compile (Index i) (JArray js) =  if i >= length js then return [JNull] else return [js !! i]
-compile (Index _) _           =  Left "Can not index non-array"
+compile (Index i _) (JArray js) =  if i >= length js then return [JNull] else return [js !! i]
+compile (Index _ b) _           =  if b then return [] else Left "Can not index non-array"
 
 -- Array slice
-compile (Slice s e) (JArray js) =  
+compile (Slice s e _) (JArray js) =  
     case drop s . take e $ js of  
         [] -> return [JArray []]
         rs -> return rs
-compile (Slice _ _) _           =  Left "Can not index non-array"
+compile (Slice _ _ b) _           = if b then return [] else Left "Can not index non-array"
 
 -- Iterator
-compile (Iterator []) (JArray js)      =  return js 
-compile (Iterator []) (JObject kvs)    =  return (map snd  kvs)
-compile (Iterator is) json             =  case compile (Iterator []) json of
+compile (Iterator [] _) (JArray js)      =  return js 
+compile (Iterator [] _) (JObject kvs)    =  return (map snd  kvs)
+compile (Iterator [] b) _                =  if b then return [] else Left "Can not iterator over non-array"
+compile (Iterator is b) json             =  case compile (Iterator [] b) json of
     Right [] -> return [JNull | _ <- is] 
     Right js -> return (map (\i -> if i < length js then js !! i else JNull) is)
     Left _   -> Left "Can not index non array"

@@ -36,32 +36,47 @@ parseIdentifier = do
   Identifier iden <$> parseOptional
 
 
-parseArrayIndex :: Parser Filter
+parseArrayIndex :: Parser Int
 parseArrayIndex = do
   _ <- token. char $ '.' 
   _ <- char '['
   index <- integer 
   _ <- char ']'
-  return $ Index index
+  return index
   
 
-parseArraySlice :: Parser Filter
+parseArraySlice :: Parser (Int, Int)
 parseArraySlice = do 
   _     <- token . string $ ".["
   start <- integer 
   _     <- char ':'
   end   <- integer
   _     <- char ']'
-  return $ Slice start end
+  return (start, end)
 
 
-parseIterator :: Parser Filter
+parseIterator :: Parser [Int] 
 parseIterator = do
   _  <- token . string $ ".["
   es <- many parseCommaSeperatedNum
   _  <- char ']'
-  return $ Iterator es
-  
+  return es
+
+
+parseArrayIndexOptional :: Parser Filter
+parseArrayIndexOptional = do
+  index <- parseArrayIndex
+  Index index <$> parseOptional
+
+parseArraySliceOptional :: Parser Filter
+parseArraySliceOptional = do
+  (s, e) <- parseArraySlice
+  Slice s e <$> parseOptional
+
+parseIteratorOptional :: Parser Filter
+parseIteratorOptional = do
+  is <- parseIterator
+  Iterator is <$> parseOptional
 
 parseCommaSeperatedNum :: Parser Int
 parseCommaSeperatedNum = do i <- integer
@@ -74,9 +89,9 @@ parseCommaSeperatedNum = do i <- integer
 
 parseFilter :: Parser Filter
 parseFilter = parseIdentifier
-  <|> parseIterator
-  <|> parseArraySlice
-  <|> parseArrayIndex
+  <|> parseIteratorOptional
+  <|> parseArraySliceOptional
+  <|> parseArrayIndexOptional
   <|> parseIdentity
 
 parseConfig :: [String] -> Either String Config

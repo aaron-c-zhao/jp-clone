@@ -7,6 +7,7 @@ import Jq.Compiler
 import System.Environment (getArgs)
 
 import Control.Arrow (left)
+import Debug.Trace
 
 readInput :: IO String
 readInput = getContents
@@ -32,7 +33,7 @@ process args json = do
       obj: json object
   --}
   res <- left ("Coudn't execute the program: " ++) $ run program obj 
-  return $ concat . map ((++"\n") . show) $ res
+  return $ concat . map ((++"\n") . show) $ trace (show res) res
 
 processIO :: [String] -> String -> IO (Either String ())
 processIO c s = do
