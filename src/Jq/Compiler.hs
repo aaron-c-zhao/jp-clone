@@ -5,6 +5,7 @@ import           Jq.Filters
 import           Jq.Json
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Debug.Trace
 
 
 type JProgram a = JSON -> Either String a
@@ -46,7 +47,7 @@ compile (Iterator is b) json             =  case compile (Iterator [] b) json of
     Left _   -> Left "Can not index non array"
 
 -- Comma
-compile (Comma f s) json                 =  compile f json >>= (\js -> (++) js <$> compile s json) 
+compile (Comma f s) json =  compile f json >>= (\js -> (++) js <$> compile s json) 
 
 -- Pipe
 compile (Pipe i o) json  =  do
