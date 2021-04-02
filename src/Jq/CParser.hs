@@ -54,8 +54,27 @@ parseArraySlice = do
   _     <- char ']'
   return $ Slice start end
 
+
+parseIterator :: Parser Filter
+parseIterator = do
+  _  <- token . string $ ".["
+  es <- many parseCommaSeperatedNum
+  _  <- char ']'
+  return $ Iterator es
+  
+
+parseCommaSeperatedNum :: Parser Int
+parseCommaSeperatedNum = do i <- integer
+                            _ <- char ','
+                            return i 
+                         <|>
+                            integer 
+
+
+
 parseFilter :: Parser Filter
 parseFilter = parseIdentifier
+  <|> parseIterator
   <|> parseArraySlice
   <|> parseArrayIndex
   <|> parseIdentity
