@@ -6,7 +6,7 @@ data JSON =
     | JFloat {getFloat:: Float} 
     | JInt {getInt:: Int} 
     | JBool {getBool::Bool}
-    | JString {getString::String }
+    | JString {getString::String}
     | JArray {getArray:: [JSON]}
     | JObject {getObject::[(String,JSON)]}
 
@@ -40,6 +40,7 @@ indent :: Int -> String
 indent n = [' '| _ <- [1..n]]
 
 showJArray :: Int -> [JSON] -> String
+showJArray n [] = indent n ++ "[" ++ "]"
 showJArray n xs = indent n ++ "[" ++ showContent (n + 2) xs ++ "\n" ++ indent n ++ "]"
 
 showElement :: Int -> JSON -> String
@@ -63,7 +64,7 @@ showKeyPairs n [x]    = showKeyPair n x
 showKeyPairs n (x:xs) = showKeyPair n x ++ showKeyPairs n xs
 
 showKeyPair :: Int -> (String, JSON) -> String
-showKeyPair n (key, val) = "\n" ++ indent (n + 2) ++ key ++ ": " ++ showVal (n + 2) val
+showKeyPair n (key, val) = "\n" ++ indent (n + 2) ++ show key ++ ": " ++ showVal (n + 2) val
   where 
     showVal n' val' = case val' of 
       JArray xs   -> "[" ++ showContent (n' + 2) xs ++ "\n" ++ indent n' ++ "]"
