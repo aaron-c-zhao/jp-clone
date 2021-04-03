@@ -100,26 +100,25 @@ parseFilter = parsePipe
 
 
 parseComma :: Parser Filter
--- parseComma = do f <- parsePrimitive 
---                 _ <- token . char $ ','
---                 Comma f <$> parseFilter
-parseComma = do p <- parsePrimitive
+parseComma = do p <- parseParenthesis
                 do  _ <- symbol ","
                     Comma p <$> parseComma
                   <|> return p
                   
 parsePipe :: Parser Filter
--- parsePipe = do p <- parsePrimitive
---                _ <- token . char $ '|'
---                Pipe p <$> parseFilter 
---             <|>
---                do p <- parsePrimitive
---                   Pipe p <$> parseFilter
 parsePipe = do c <- parseComma
                do  _ <- symbol "|"
                    Pipe c <$> parsePipe
                  <|> Pipe c <$> parsePipe 
                  <|> return c
+
+parseParenthesis :: Parser Filter
+parseParenthesis = do _ <- symbol "("
+                      p <- parsePipe
+                      _ <- symbol ")"
+                      return p 
+                    <|> parsePrimitive
+                      
                   
 
 parseConfig :: [String] -> Either String Config
