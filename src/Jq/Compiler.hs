@@ -18,24 +18,29 @@ compile (Identity) inp  =
     return [inp]
 
 -- Ojbect Identifier
+compile (Identifier _ _) JNull        = return [JNull]
 compile (Identifier n _) (JObject js) = 
     case Map.lookup n $ Map.fromList js of
         Just x -> return [x]
         Nothing -> return [JNull]
-compile (Identifier _ b) json =  
-    if b then return [JNull] else Left $ show json 
+compile (Identifier _ b) json         =  
+    if b then return [] else Left $ show json 
         ++ " is not an Object, it can not be indexed with identifier!"
 
 -- Array index
-compile (Index i _) (JArray js) =  if i >= length js then return [JNull] else return [js !! i]
-compile (Index _ b) _           =  if b then return [] else Left "Can not index non-array"
+compile (Index _ _) JNull         =  return [JNull]
+compile (Index i _) (JArray js)   =  if i >= length js then return [JNull] else return [js !! i]
+compile (Index _ b) _             =  if b then return [] else Left "Can not index non-array"
 
 -- Array slice
-compile (Slice s e _) (JArray js) =  
-    case drop s . take e $ js of  
+compile (Slice _ _ _) JNull        = return [JNull]
+compile (Slice s e _) (JArray js)  =  case drop s . take e $ js of  
         [] -> return [JArray []]
-        rs -> return rs
-compile (Slice _ _ b) _           = if b then return [] else Left "Can not index non-array"
+        rs -> return [JArray rs]
+compile (Slice s e _) (JString str) = case drop s . take e $ str of 
+    ""     -> return [JString ""]
+    substr -> return [JString substr]
+compile (Slice _ _ b) _             = if b then return [] else Left "Can not index non-array"
 
 -- Iterator
 compile (Iterator [] _) (JArray js)      =  return js 

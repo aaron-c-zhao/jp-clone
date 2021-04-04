@@ -56,6 +56,7 @@ showContent n (x:xs) = "\n" ++  showElement n x ++ "," ++ showContent n xs
 
 
 showJObject :: Int -> [(String, JSON)] -> String
+showJObject n [] = indent n ++ "{" ++ "}"
 showJObject n xs = indent n ++ "{" ++ showKeyPairs n xs ++ "\n" ++ indent n ++ "}" 
 
 showKeyPairs :: Int -> [(String, JSON)] -> String
