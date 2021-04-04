@@ -3,6 +3,7 @@ module Jq.JParser where
 import Parsing.Parsing
 import Jq.Json
 import Data.Char
+import Debug.Trace
 
 parseJNull :: Parser JSON
 parseJNull = do _ <- string "null"
@@ -18,7 +19,7 @@ parseJBool :: Parser JSON
 parseJBool = JBool <$> bool
 
 parseJStr :: Parser JSON
-parseJStr = do _ <- char '"'
+parseJStr = do _ <- symbol "\""
                JString <$> jString 
 
 parseJArray :: Parser JSON
@@ -30,10 +31,10 @@ parseJArray = do _  <- char '['
 
 
 parseJObject :: Parser JSON
-parseJObject = do _ <- char '{'
-                  kvs <- many $ token jkeypairComma -- Note since jkeypairComma does not call parseJSON, it has to handle space by itself
+parseJObject = do _ <- symbol "{"
+                  kvs <- many jkeypairComma -- Note since jkeypairComma does not call parseJSON, it has to handle space by itself
                   kv  <- token jkeypair
-                  _ <- char '}'
+                  _ <- symbol "}"
                   return $ JObject (kvs ++ [kv])
                   
 
@@ -140,13 +141,15 @@ jelement = do e <- parseJSON
              
 jkeypair :: Parser (String, JSON)
 jkeypair = do key <- parseJStr
-              _ <- char ':'
+              _   <- symbol ":"
               val <- parseJSON
-              return (show key, val)
+              case key of 
+                  JString str -> return (str, val)
+                  _           -> empty
 
 jkeypairComma :: Parser (String, JSON)
 jkeypairComma = do kv <- jkeypair
-                   _ <- char ','
+                   _ <- symbol ","
                    return kv
              
                     

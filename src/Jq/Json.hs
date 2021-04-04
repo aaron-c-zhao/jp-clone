@@ -15,7 +15,7 @@ instance Show JSON where
   show (JFloat f) = show f
   show (JInt i) = show i
   show (JBool b) = lowerFirst $ show b -- keep the output consistant with 'jq' i.e. 'true' 'false'
-  show (JString s) = s
+  show (JString s) = "\"" ++ s ++ "\""
   show (JArray xs) = showJArray 0 xs 
   show (JObject xs) = showJObject 0 xs
 
@@ -68,6 +68,6 @@ showKeyPair n (key, val) = "\n" ++ indent (n + 2) ++ show key ++ ": " ++ showVal
   where 
     showVal n' val' = case val' of 
       JArray xs   -> "[" ++ showContent (n' + 2) xs ++ "\n" ++ indent n' ++ "]"
-      JObject xs  -> "{\n" ++ showKeyPairs (n' + 2) xs ++ "\n" ++ indent n' ++ "}" 
+      JObject xs  -> "{" ++ showKeyPairs n' xs ++ "\n" ++ indent n' ++ "}" 
       _           -> showElement 0 val'
 
