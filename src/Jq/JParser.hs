@@ -47,7 +47,6 @@ parseJSON = token $ parseJNull
     <|> parseJObject
 
 
-
 -- positive float number
 pfloat :: Parser Float 
 pfloat = do xs <- some digit

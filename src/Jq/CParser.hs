@@ -3,6 +3,7 @@ module Jq.CParser where
 import Parsing.Parsing
 import Jq.Filters
 import Jq.JParser 
+import Jq.Json
 import Debug.Trace
 
 
@@ -13,10 +14,8 @@ parseIdentity = do
 
 parseSimpleIdentifier :: Parser String
 parseSimpleIdentifier =  do
-  _           <- token . char $ '.'
-  first_char  <- letter 
-  rest        <- many $ alphanum <|> char '_'
-  return (first_char : rest)
+  _   <- token . char $ '.'
+  parseSimpleString
 
 parseIdentifierGeneric::Parser String 
 parseIdentifierGeneric = do _  <- token . char $ '.'
@@ -91,13 +90,18 @@ parsePrimitive = parseIdentifier
   <|> parseArraySliceOptional
   <|> parseArrayIndexOptional
   <|> parseIdentity
+  <|> parseJVal
+  -- <|> parseCObject
+  <|> parseCArray
 
 
 parseFilter :: Parser Filter
 parseFilter = parsePipe 
-  <|> parseComma
-  <|> parsePrimitive
 
+-- Grammar
+-- pipe        ::= comma | pipe ; comma
+-- comma       ::= parenthesis , comma ; parenthesis
+-- parenthesis ::= () ; primitive 
 
 parseComma :: Parser Filter
 parseComma = do p <- parseParenthesis
@@ -118,8 +122,47 @@ parseParenthesis = do _ <- symbol "("
                       _ <- symbol ")"
                       return p 
                     <|> parsePrimitive
-                      
-                  
+
+--------------------------------- Constructors---------------------------------
+
+parseJVal :: Parser Filter
+parseJVal = do 
+  JVal <$> (parseJNull <|> parseJBool <|> parseJFloat <|> parseJInt <|> parseJStr)
+
+
+-- parseCObject :: Parser Filter
+-- parseCObject = do _   <- symbol "{"
+--                   do kv <- parseCKeyPair 
+--                      _  <- symbol ","
+--                      return  
+--                     <|> kv <- parseCKeyPair
+
+
+parseCArray :: Parser Filter
+parseCArray = do _  <- symbol "["
+                 es <- parsePipe
+                 _  <- symbol "]"
+                 return $ JArrayFilter es
+               <|> 
+                 do _ <- symbol "["
+                    _ <- symbol "]"
+                    return $ JArrayFilter $ JVal JNull 
+                
+               
+
+-- parseCKeyPair :: Parser Filter 
+-- parseCKeyPair = do 
+--   key <- parseFilter <|> (JVal <$> (JString <$> parseSimpleString))
+--   _   <- symbol ":"
+--   v   <- parseFilter
+--   return $ JKeyValPair (key, v) 
+
+parseSimpleString :: Parser String
+parseSimpleString = do 
+  f <- letter
+  s <- many $ alphanum <|> char '_'
+  return $ f : s
+
 
 parseConfig :: [String] -> Either String Config
 parseConfig s = case s of 

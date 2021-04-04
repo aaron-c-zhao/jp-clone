@@ -53,8 +53,20 @@ compile (Comma f s) json =  compile f json >>= (\js -> (++) js <$> compile s jso
 compile (Pipe i o) json  =  do
     is <- compile i json
     multiCompile o is
-    
 
+-- construct primitive values, bool, numbers, string, null
+compile (JVal j) _ = Right [j]
+
+-- construct array
+compile (JArrayFilter js) json =  case compile js json of
+    Left str      -> Left str
+    Right [JNull] -> Right [JArray []]
+    Right vs      -> Right [JArray vs]
+
+-- construct object
+-- compile (JObjectFitler kvs) json = 
+    
+-- helper function for pipe to recursively compile it
 multiCompile :: Filter -> [JSON] -> Either String [JSON]
 multiCompile _ []     = Right []
 multiCompile f (j:js) = compile f j >>= (\rs -> (++) rs <$> multiCompile f js)
