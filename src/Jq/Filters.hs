@@ -11,8 +11,7 @@ data Filter = Identity
   | Comma {fstOp :: Filter, sndOp :: Filter}
   | Pipe {input :: Filter, output :: Filter}
   | JVal {val :: JSON}
-  -- | JObjectFitler {keyValParis:: [Filter]}
-  -- | JKeyValPair {keyValPair::(Filter, Filter)}
+  | JObjectFitler {keyValParis:: [(Filter, Filter)]}
   | JArrayFilter {arrFoilter:: Filter}
   
 
@@ -25,8 +24,7 @@ instance Show Filter where
   show (Comma f s)          = show f ++ ", " ++ show s
   show (Pipe i o)           = show i ++ ", " ++ show o
   show (JVal j)             = show j
-  -- show (JKeyValPair (k, v))  = show k ++ ": " ++ show v
-  -- show (JObjectFitler _)    = "Construct object"
+  show (JObjectFitler _)    = "Construct object"
   show (JArrayFilter _)     = "Construct array"
 
 data Config = ConfigC {filters :: Filter}

@@ -8,9 +8,12 @@ import Debug.Trace
 
 
 parseIdentity :: Parser Filter
-parseIdentity = do
-  _ <- token . char $ '.'
-  return Identity
+parseIdentity = do _ <- symbol "." 
+                   Pipe Identity <$> parseIteratorOptional
+                  <|> 
+                    do _<- symbol "."
+                       return Identity 
+                 
 
 parseSimpleIdentifier :: Parser String
 parseSimpleIdentifier =  do
@@ -18,29 +21,34 @@ parseSimpleIdentifier =  do
   parseSimpleString
 
 parseIdentifierGeneric::Parser String 
-parseIdentifierGeneric = do _  <- token . char $ '.'
+parseIdentifierGeneric = do _  <- symbol "." 
                             _  <- string "[\""
                             i  <- jString 
                             _  <- string "]"
                             return i
                         <|>
                             do 
-                              _ <- token . char $ '.'     
+                              _ <- symbol "." 
                               _ <- char '\"'
                               jString 
 
 parseIdentifier :: Parser Filter
-parseIdentifier = do 
-  iden <- parseSimpleIdentifier <|> parseIdentifierGeneric
-  Identifier iden <$> parseOptional
+parseIdentifier = do iden <- parseSimpleIdentifier <|> parseIdentifierGeneric
+                     do b <- parseOptional
+                        Pipe (Identifier iden b) <$> parseIdentifier
+                        <|>
+                          do 
+                            b <- parseOptional
+                            Pipe (Identifier iden b) <$> parseIteratorOptional
+                        <|>
+                           Identifier iden <$> parseOptional
 
 
 parseArrayIndex :: Parser Int
 parseArrayIndex = do
-  _ <- token. char $ '.' 
-  _ <- char '['
+  _ <- symbol ".[" 
   index <- integer 
-  _ <- char ']'
+  _ <- symbol "]" 
   return index
   
 
@@ -53,24 +61,30 @@ parseArraySlice = do
   _     <- char ']'
   return (start, end)
 
-
+-- TODO: [.this[]]
 parseIterator :: Parser [Int] 
-parseIterator = do
-  _  <- token . string $ ".["
-  es <- many parseCommaSeperatedNum
-  _  <- char ']'
+parseIterator = do 
+  _   <- symbol "["
+  es  <- many parseCommaSeperatedNum
+  _   <- symbol "]" 
   return es
 
 
 parseArrayIndexOptional :: Parser Filter
-parseArrayIndexOptional = do
-  index <- parseArrayIndex
-  Index index <$> parseOptional
+parseArrayIndexOptional = do index <- parseArrayIndex
+                             do
+                                b     <- parseOptional
+                                Pipe (Index index b) <$> parseIteratorOptional
+                              <|>
+                                Index index <$> parseOptional
 
 parseArraySliceOptional :: Parser Filter
-parseArraySliceOptional = do
-  (s, e) <- parseArraySlice
-  Slice s e <$> parseOptional
+parseArraySliceOptional = do (s, e) <- parseArraySlice
+                             do b <- parseOptional
+                                Pipe (Slice s e b) <$> parseIteratorOptional
+                              <|>
+                                Slice s e <$> parseOptional
+
 
 parseIteratorOptional :: Parser Filter
 parseIteratorOptional = do
@@ -86,7 +100,6 @@ parseCommaSeperatedNum = do i <- integer
 
 parsePrimitive :: Parser Filter
 parsePrimitive = parseIdentifier
-  <|> parseIteratorOptional
   <|> parseArraySliceOptional
   <|> parseArrayIndexOptional
   <|> parseIdentity
@@ -113,7 +126,6 @@ parsePipe :: Parser Filter
 parsePipe = do c <- parseComma
                do  _ <- symbol "|"
                    Pipe c <$> parsePipe
-                 <|> Pipe c <$> parsePipe 
                  <|> return c
 
 parseParenthesis :: Parser Filter
@@ -132,11 +144,10 @@ parseJVal = do
 
 -- parseCObject :: Parser Filter
 -- parseCObject = do _   <- symbol "{"
---                   do kv <- parseCKeyPair 
---                      _  <- symbol ","
---                      return  
---                     <|> kv <- parseCKeyPair
-
+--                   kps <- many parseCKeyPairComma
+--                   kp  <- many parseCKeyPair
+--                   _   <- symbol "}"
+--                   return $ JObjectFitler (kps ++ kp)
 
 parseCArray :: Parser Filter
 parseCArray = do _  <- symbol "["
@@ -151,11 +162,16 @@ parseCArray = do _  <- symbol "["
                
 
 -- parseCKeyPair :: Parser Filter 
--- parseCKeyPair = do 
---   key <- parseFilter <|> (JVal <$> (JString <$> parseSimpleString))
---   _   <- symbol ":"
---   v   <- parseFilter
---   return $ JKeyValPair (key, v) 
+-- parseCKeyPair = do key <- parseFilter <|> (JVal <$> (JString <$> parseSimpleString))
+--                    _   <- symbol ":"
+--                    v   <- parseFilter
+--                    return $ JKeyValPair (key, v)
+
+-- parseCKeyPairComma :: Parser Filter
+-- parseCKeyPairComma = do kp <- parseCKeyPair
+--                         _  <- symbol ","
+--                         return kp
+                   
 
 parseSimpleString :: Parser String
 parseSimpleString = do 

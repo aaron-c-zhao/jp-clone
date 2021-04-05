@@ -19,17 +19,6 @@ instance Show JSON where
   show (JArray xs) = showJArray 0 xs 
   show (JObject xs) = showJObject 0 xs
 
--- instance Eq JSON where
---   (JFloat f) == (JFloat f')                         = f == f'
---   (JInt i) == (JInt i')                             = i == i'
---   JNull == JNull                                    = True
---   (JBool b) == (JBool b')                           = b == b'
---   (JString s) == (JString s')                       = s == s'
---   (JArray []) == (JArray [])                        = True
---   (JArray []) == (JArray _)                         = False
---   (JArray _)  == (JArray[])                         = False
---   (JArray (x:xs)) == (JArray (x':xs'))              = (x == x') && (JArray xs) == (JArray xs')
---   (JKeyPair (key, val)) == (JKeyPair (key', val'))  = key == key' && (val == val')
 
 lowerFirst :: String -> String
 lowerFirst [] = []

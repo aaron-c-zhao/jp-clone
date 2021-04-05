@@ -44,8 +44,9 @@ compile (Slice _ _ b) _             = if b then return [] else Left "Can not ind
 
 -- Iterator
 compile (Iterator [] _) (JArray js)      =  return js 
-compile (Iterator [] _) (JObject kvs)    =  return (map snd  kvs)
+compile (Iterator [] _) (JObject kvs)    =  return (map snd kvs)
 compile (Iterator [] b) _                =  if b then return [] else Left "Can not iterator over non-array"
+compile (Iterator _ b) (JObject _)       =  if b then return [] else Left "Can not index object with number"
 compile (Iterator is b) json             =  case compile (Iterator [] b) json of
     Right [] -> return [JNull | _ <- is] 
     Right js -> return (map (\i -> if i < length js then js !! i else JNull) is)
@@ -68,8 +69,16 @@ compile (JArrayFilter js) json =  case compile js json of
     Right [JNull] -> Right [JArray []]
     Right vs      -> Right [JArray vs]
 
+-- key value pair
+-- compile (JKeyValPair (k, v)) json = case compile k json of 
+--     Left str             -> Left str
+--     Right [JString str]  -> case compile v json of 
+--         Left str     -> Left str 
+--         Right [json] -> return [JObject [(str, json)]] 
+--     Right [JNull]        -> Left "Can not use null as object key"
+
 -- construct object
--- compile (JObjectFitler kvs) json = 
+-- compile (JObjectFitler kvs) json = fmap (\kp -> compile kp json) kvs
     
 -- helper function for pipe to recursively compile it
 multiCompile :: Filter -> [JSON] -> Either String [JSON]
