@@ -4,7 +4,6 @@ import Parsing.Parsing
 import Jq.Filters
 import Jq.JParser 
 import Jq.Json
-import Debug.Trace
 
 
 parseIdentity :: Parser Filter
@@ -181,21 +180,35 @@ parseCKeyPairComma = do kp <- parseCKeyPair
                         _  <- symbol ","
                         Comma kp <$> parseCKeyPairComma 
                       <|>
+                        do str <- parseSimpleString
+                           _   <- symbol ","
+                           Comma (JKeyPair (JVal $ JString str, Identifier str False)) <$> parseCKeyPairComma
+                      <|>
                         parseCKeyPair
+                      <|>
+                        do str <- parseSimpleString
+                           return $ JKeyPair (JVal $ JString str, Identifier str False)
+
                         
 
 parseSimpleString :: Parser String
-parseSimpleString = do 
-  f <- letter
-  s <- many $ alphanum <|> char '_'
-  return $ f : s
+parseSimpleString = do f <- letter
+                       s <- many $ alphanum <|> char '_'
+                       return $ f : s
+                      <|> 
+                       do
+                          _ <- symbol "\""
+                          jString  
+
+
+
 
 
 parseConfig :: [String] -> Either String Config
 parseConfig s = case s of 
   [] -> Left "No filters provided"
   h : _ -> -- only parse one filter with this case if there's more than one then an error is thrown
-    case parse parseFilter h of
+    case parse parseFilter $ h of
       [(v, out)] -> case out of
         [] -> Right . ConfigC $ v
         _ -> Left $ "Compilation error, leftover: " ++ out

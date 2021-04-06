@@ -25,7 +25,8 @@ instance Show Filter where
   show (Comma f s)          = show f ++ ", " ++ show s
   show (Pipe i o)           = show i ++ ", " ++ show o
   show (JVal j)             = show j
-  show (JObjectFitler _)    = "Construct object"
-  show (JArrayFilter _)     = "Construct array"
+  show (JObjectFitler f)    = "{" ++ show f ++ "}"
+  show (JArrayFilter f)     = "[" ++ show f ++"]"
+  show (JKeyPair (k, v)) = "(" ++ show k ++ show v ++ ")"
 
 data Config = ConfigC {filters :: Filter}

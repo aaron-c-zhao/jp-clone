@@ -51,7 +51,7 @@ showJObject n xs = indent n ++ "{" ++ showKeyPairs n xs ++ "\n" ++ indent n ++ "
 showKeyPairs :: Int -> [(String, JSON)] -> String
 showKeyPairs _ []     = ""
 showKeyPairs n [x]    = showKeyPair n x
-showKeyPairs n (x:xs) = showKeyPair n x ++ showKeyPairs n xs
+showKeyPairs n (x:xs) = showKeyPair n x ++ "," ++ showKeyPairs n xs
 
 showKeyPair :: Int -> (String, JSON) -> String
 showKeyPair n (key, val) = "\n" ++ indent (n + 2) ++ show key ++ ": " ++ showVal (n + 2) val

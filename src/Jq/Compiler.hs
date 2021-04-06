@@ -3,9 +3,7 @@ module Jq.Compiler where
 
 import           Jq.Filters
 import           Jq.Json
-import Data.Map (Map)
 import qualified Data.Map as Map
-import Debug.Trace
 
 
 type JProgram a = JSON -> Either String a
@@ -69,26 +67,36 @@ compile (JArrayFilter js) json =  case compile js json of
     Right [JNull] -> Right [JArray []]
     Right vs      -> Right [JArray vs]
 
--- key value pair
--- compile (JKeyValPair (k, v)) json = case compile k json of 
---     Left str             -> Left str
---     Right [JString str]  -> case compile v json of 
---         Left str     -> Left str 
---         Right [json] -> return [JObject [(str, json)]] 
---     Right [JNull]        -> Left "Can not use null as object key"
 
 -- construct object
--- compile (JKeyPair (k, v)) json = case compile k json of 
---     Left str            -> Left str
---     Right [JString str] -> case compile v json of
---         Left str        -> Left str
---         Right [json]    -> return [JObject [(str, json)]]
---     Right [JString _]   -> 
---     Right [_]           -> Left "Can not use non-string as object key" 
+compile (JKeyPair (k, v)) json = case compile k json of 
+    Left str                   -> Left str
+    Right [JString str]        -> compileVal str v json
+    Right ks                   -> compileKeys ks v json 
+    
+compile (JObjectFitler (Comma l r)) json = case compile (Comma l r) json of
+    Left str -> Left str
+    Right js -> Right [JObject $ extractJSONs js]
+        where 
+            extractJSONs ((JObject kvs): objs) = kvs ++ extractJSONs objs
+            extractJSONs _ = []
+compile (JObjectFitler (JVal (JArray []))) _ = Right [JObject []]
+compile (JObjectFitler f) json = compile f json
 
 
--- compile (JObjectFitler kvs) json = case kvs of 
---     JVal (JArray [])      -> return []
+
+compileKeys :: [JSON] -> Filter -> JSON -> Either String [JSON]
+compileKeys [] _ _                      = Right []
+compileKeys ((JString str):keys) v json =  (++) <$> compileVal str v json <*> compileKeys keys v json
+compileKeys _ _ _                       = Left "Can not use things other than string as key"
+
+
+compileVal :: String -> Filter -> JSON -> Either String [JSON]
+compileVal str f j = case compile f j of
+        Left s    -> Left s
+        Right js  -> return  $ map (\json -> JObject [(str, json)]) js
+
+
     
 
     
