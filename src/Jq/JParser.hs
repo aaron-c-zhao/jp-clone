@@ -3,6 +3,7 @@ module Jq.JParser where
 import Parsing.Parsing
 import Jq.Json
 import Data.Char
+import qualified Data.Set as Set
 
 parseJNull :: Parser JSON
 parseJNull = do _ <- string "null"
@@ -18,24 +19,37 @@ parseJBool :: Parser JSON
 parseJBool = JBool <$> bool
 
 parseJStr :: Parser JSON
-parseJStr = do _ <- char '"'
+parseJStr = do _ <- symbol "\""
                JString <$> jString 
 
 parseJArray :: Parser JSON
 parseJArray = do _  <- char '['
-                 es <- many jelement 
-                 e  <- many parseJSON
-                 _  <- char ']'
-                 return (JArray (es ++ e))
+                 do 
+                    es <- many jelement
+                    e  <- parseJSON
+                    _  <- char ']'
+                    return (JArray (es ++ [e]))
+                  <|> 
+                    do _ <- symbol "]" 
+                       return (JArray []) 
 
 
+-- TODO: when encounters duplicate elements, keep the last one 
 parseJObject :: Parser JSON
-parseJObject = do _ <- char '{'
-                  kvs <- many $ token jkeypairComma -- Note since jkeypairComma does not call parseJSON, it has to handle space by itself
-                  kv  <- token jkeypair
-                  _ <- char '}'
-                  return $ JObject (kvs ++ [kv])
-                  
+parseJObject = do _ <- symbol "{"
+                  do kvs <- many jkeypairComma -- Note since jkeypairComma does not call parseJSON, it has to handle space by itself
+                     kv  <- jkeypair
+                     _ <- symbol "}"
+                     return $ JObject $ removeDuplicate Set.empty. reverse $ (kvs ++ [kv]) 
+                    <|>
+                     do _ <- symbol "}"
+                        return $ JObject []
+
+removeDuplicate :: Ord a => Set.Set a -> [(a, b)] -> [(a, b)]
+removeDuplicate _ []     = []
+removeDuplicate s ((k, v):as) = if Set.member k s 
+    then removeDuplicate (Set.insert k s) as else removeDuplicate (Set.insert k s) as ++ [(k, v)]
+
 
 parseJSON :: Parser JSON
 parseJSON = token $ parseJNull 
@@ -45,7 +59,6 @@ parseJSON = token $ parseJNull
     <|> parseJStr 
     <|> parseJArray 
     <|> parseJObject
-
 
 
 -- positive float number
@@ -66,11 +79,11 @@ nfloat = do _ <- char '-'
 -- float number 
 float :: Parser Float
 float = do f <- nfloat
-           _ <- char 'E' <|> char 'e'
-           e <- int
-           return (f * (10 ^ e))
-        <|>
-            nfloat
+           do _ <- char 'E' <|> char 'e'
+              e <- int
+              return (f * (10 ^ e))
+             <|>
+              return f 
 
 -- scientific notion of integer
 sint :: Parser Int
@@ -89,7 +102,6 @@ bool = do b <- string "true" <|> string "false"
               _ -> empty
           
 -- string 
-
 jchar :: Parser Char 
 jchar = sat (\c -> (c /= '\\') && (c /= '"'))
 
@@ -118,9 +130,6 @@ jescape = do
         _      -> empty
                  
 
-jquote :: Parser String
-jquote = (:) <$> sat (== '"') <*> return []
-
 -- recursivly parser characters in a string until encounters:
 -- \ : escape sequence
 -- " : end of string
@@ -141,13 +150,15 @@ jelement = do e <- parseJSON
              
 jkeypair :: Parser (String, JSON)
 jkeypair = do key <- parseJStr
-              _ <- char ':'
+              _   <- symbol ":"
               val <- parseJSON
-              return (show key, val)
+              case key of 
+                  JString str -> return (str, val)
+                  _           -> empty
 
 jkeypairComma :: Parser (String, JSON)
 jkeypairComma = do kv <- jkeypair
-                   _ <- char ','
+                   _ <- symbol ","
                    return kv
              
                     
