@@ -78,7 +78,19 @@ compile (JArrayFilter js) json =  case compile js json of
 --     Right [JNull]        -> Left "Can not use null as object key"
 
 -- construct object
--- compile (JObjectFitler kvs) json = fmap (\kp -> compile kp json) kvs
+-- compile (JKeyPair (k, v)) json = case compile k json of 
+--     Left str            -> Left str
+--     Right [JString str] -> case compile v json of
+--         Left str        -> Left str
+--         Right [json]    -> return [JObject [(str, json)]]
+--     Right [JString _]   -> 
+--     Right [_]           -> Left "Can not use non-string as object key" 
+
+
+-- compile (JObjectFitler kvs) json = case kvs of 
+--     JVal (JArray [])      -> return []
+    
+
     
 -- helper function for pipe to recursively compile it
 multiCompile :: Filter -> [JSON] -> Either String [JSON]

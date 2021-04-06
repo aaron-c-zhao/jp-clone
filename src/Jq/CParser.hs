@@ -104,7 +104,7 @@ parsePrimitive = parseIdentifier
   <|> parseArrayIndexOptional
   <|> parseIdentity
   <|> parseJVal
-  -- <|> parseCObject
+  <|> parseCObject
   <|> parseCArray
 
 
@@ -142,12 +142,15 @@ parseJVal = do
   JVal <$> (parseJNull <|> parseJBool <|> parseJFloat <|> parseJInt <|> parseJStr)
 
 
--- parseCObject :: Parser Filter
--- parseCObject = do _   <- symbol "{"
---                   kps <- many parseCKeyPairComma
---                   kp  <- many parseCKeyPair
---                   _   <- symbol "}"
---                   return $ JObjectFitler (kps ++ kp)
+parseCObject :: Parser Filter
+parseCObject = do _   <- symbol "{"
+                  do kvs <- parseCKeyPairComma  
+                     _   <- symbol "}"
+                     return $ JObjectFitler kvs
+                    <|>
+                      do
+                        _ <- symbol "}"
+                        return $ JObjectFitler (JVal (JArray []))
 
 parseCArray :: Parser Filter
 parseCArray = do _  <- symbol "["
@@ -160,18 +163,26 @@ parseCArray = do _  <- symbol "["
                     return $ JArrayFilter $ JVal JNull 
                 
                
+-- JKeyPair (Filter, Filter)
+parseCKeyPair :: Parser Filter 
+parseCKeyPair = do key <- parseFilter <|> (JVal <$> (JString <$> parseSimpleString))
+                   _   <- symbol ":"
+                   v   <- parseFilter
+                   return $ JKeyPair (key, v)
 
--- parseCKeyPair :: Parser Filter 
--- parseCKeyPair = do key <- parseFilter <|> (JVal <$> (JString <$> parseSimpleString))
---                    _   <- symbol ":"
---                    v   <- parseFilter
---                    return $ JKeyValPair (key, v)
-
--- parseCKeyPairComma :: Parser Filter
--- parseCKeyPairComma = do kp <- parseCKeyPair
---                         _  <- symbol ","
---                         return kp
-                   
+-- Parser Filter
+-- kp <- parseCKeyPair
+-- symbol ","
+-- Comma kp <$> parseCKeyPairs
+-- <|>
+-- parseCKeyPair
+parseCKeyPairComma :: Parser Filter 
+parseCKeyPairComma = do kp <- parseCKeyPair
+                        _  <- symbol ","
+                        Comma kp <$> parseCKeyPairComma 
+                      <|>
+                        parseCKeyPair
+                        
 
 parseSimpleString :: Parser String
 parseSimpleString = do 

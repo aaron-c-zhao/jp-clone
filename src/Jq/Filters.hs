@@ -11,7 +11,8 @@ data Filter = Identity
   | Comma {fstOp :: Filter, sndOp :: Filter}
   | Pipe {input :: Filter, output :: Filter}
   | JVal {val :: JSON}
-  | JObjectFitler {keyValParis:: [(Filter, Filter)]}
+  | JKeyPair {getKeyPair:: (Filter, Filter)}
+  | JObjectFitler {getContent:: Filter}
   | JArrayFilter {arrFoilter:: Filter}
   
 
