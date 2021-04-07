@@ -26,9 +26,19 @@ compile (Identifier _ b) json         =
         ++ " is not an Object, it can not be indexed with identifier!"
 
 -- Array index
+-- TODO: negative index
 compile (Index _ _) JNull         =  return [JNull]
-compile (Index i _) (JArray js)   =  if i >= length js then return [JNull] else return [js !! i]
+compile (Index i _) (JArray js)   =  
+    let l = length js in 
+        if i >= l then return [JNull] 
+            else if i < 0 
+                then return [js !! (l - (-i) `mod` l)]
+                    else return [js !! i]
 compile (Index _ b) _             =  if b then return [] else Left "Can not index non-array"
+
+
+-- Generic index
+-- compile (GenericIndex f _) (JObject kvs) = 
 
 -- Array slice
 compile (Slice _ _ _) JNull        = return [JNull]

@@ -6,6 +6,7 @@ import Jq.Json
 data Filter = Identity
   | Identifier {name::String, isOptional::Bool}
   | Index {getIndex::Int, isOptional::Bool}
+  | GenericIndex {getGenericIndex::Filter, isOptional::Bool}
   | Slice {getStart::Int, getEnd::Int, isOptional::Bool}
   | Iterator {getElements::[Int], isOptional::Bool}
   | Comma {fstOp :: Filter, sndOp :: Filter}

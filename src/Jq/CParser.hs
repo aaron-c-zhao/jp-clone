@@ -97,10 +97,17 @@ parseCommaSeperatedNum = do i <- integer
                          <|>
                             integer 
 
+parseGenericIndex :: Parser Filter
+parseGenericIndex = do _ <- symbol ".["
+                       f <- parseFilter
+                       _ <- symbol "]"
+                       GenericIndex f <$> parseOptional
+
 parsePrimitive :: Parser Filter
 parsePrimitive = parseIdentifier
   <|> parseArraySliceOptional
   <|> parseArrayIndexOptional
+  <|> parseGenericIndex
   <|> parseIdentity
   <|> parseJVal
   <|> parseCObject
