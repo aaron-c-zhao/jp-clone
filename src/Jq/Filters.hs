@@ -7,7 +7,7 @@ data Filter = Identity
   | Identifier {name::String, isOptional::Bool}
   | Index {getIndex::Int, isOptional::Bool}
   | GenericIndex {getGenericIndex::Filter, isOptional::Bool}
-  | Slice {getStart::Int, getEnd::Int, isOptional::Bool}
+  | Slice {getStart::Maybe Int, getEnd::Maybe Int, isOptional::Bool}
   | Iterator {getElements::[Int], isOptional::Bool}
   | Comma {fstOp :: Filter, sndOp :: Filter}
   | Pipe {input :: Filter, output :: Filter}
