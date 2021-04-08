@@ -34,10 +34,9 @@ parseJArray = do _  <- char '['
                        return (JArray []) 
 
 
--- TODO: when encounters duplicate elements, keep the last one 
 parseJObject :: Parser JSON
 parseJObject = do _ <- symbol "{"
-                  do kvs <- many jkeypairComma -- Note since jkeypairComma does not call parseJSON, it has to handle space by itself
+                  do kvs <- many jkeypairComma
                      kv  <- jkeypair
                      _ <- symbol "}"
                      return $ JObject $ removeDuplicate Set.empty. reverse $ (kvs ++ [kv]) 

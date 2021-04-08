@@ -15,6 +15,7 @@ data Filter = Identity
   | JKeyPair {getKeyPair:: (Filter, Filter)}
   | JObjectFitler {getContent:: Filter}
   | JArrayFilter {arrFoilter:: Filter}
+  | RecursiveDescent
   
 
 instance Show Filter where
@@ -28,6 +29,8 @@ instance Show Filter where
   show (JVal j)             = show j
   show (JObjectFitler f)    = "{" ++ show f ++ "}"
   show (JArrayFilter f)     = "[" ++ show f ++"]"
-  show (JKeyPair (k, v)) = "(" ++ show k ++ show v ++ ")"
+  show (JKeyPair (k, v))    = "(" ++ show k ++ show v ++ ")"
+  show (GenericIndex f b)   = ".[" ++ show f ++ if b then "?" else "" ++ "]"
+  show RecursiveDescent     = ".." 
 
 data Config = ConfigC {filters :: Filter}

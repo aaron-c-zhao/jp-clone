@@ -10,13 +10,16 @@ parseIdentity :: Parser Filter
 parseIdentity = do _ <- symbol "." 
                    Pipe Identity <$> parseIteratorOptional
                   <|> 
+                    do _ <- symbol ".."
+                       return RecursiveDescent 
+                  <|>
                     do _<- symbol "."
                        return Identity 
                  
 
 parseSimpleIdentifier :: Parser String
 parseSimpleIdentifier =  do
-  _   <- token . char $ '.'
+  _   <- symbol "." 
   parseSimpleString
 
 parseIdentifierGeneric::Parser String 
@@ -60,7 +63,6 @@ parseArraySlice = do
   _     <- char ']'
   return (start, end)
 
--- TODO: [.this[]]
 parseIterator :: Parser [Int] 
 parseIterator = do 
   _   <- symbol "["
@@ -140,6 +142,10 @@ parseParenthesis = do _ <- symbol "("
                       _ <- symbol ")"
                       return p 
                     <|> parsePrimitive
+
+parseRecursiveDescent :: Parser Filter
+parseRecursiveDescent = do _ <- symbol ".."
+                           return RecursiveDescent 
 
 --------------------------------- Constructors---------------------------------
 

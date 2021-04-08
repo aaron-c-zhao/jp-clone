@@ -31,7 +31,7 @@ process args json = do
       program: filters
       obj: json object
   --}
-  res <- left ("Coudn't execute the program: " ++) $ run program obj 
+  res <- left ("Couldn't execute the program: " ++) $ run program obj 
   return $ concat . map ((++"\n") . show) $ res
 
 processIO :: [String] -> String -> IO (Either String ())

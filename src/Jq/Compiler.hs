@@ -4,6 +4,7 @@ module Jq.Compiler where
 import           Jq.Filters
 import           Jq.Json
 import qualified Data.Map as Map
+import Debug.Trace 
 
 
 type JProgram a = JSON -> Either String a
@@ -26,7 +27,6 @@ compile (Identifier _ b) json         =
         ++ " is not an Object, it can not be indexed with identifier!"
 
 -- Array index
--- TODO: negative index
 compile (Index _ _) JNull         =  return [JNull]
 compile (Index i _) (JArray js)   =  
     let l = length js in 
@@ -38,7 +38,24 @@ compile (Index _ b) _             =  if b then return [] else Left "Can not inde
 
 
 -- Generic index
--- compile (GenericIndex f _) (JObject kvs) = 
+compile (GenericIndex f b) (JObject kvs) = case compile f (JObject kvs) of
+    Left str -> Left str
+    Right js -> extractIdentifiers js 
+        where 
+            extractIdentifiers []                   = Right [] 
+            extractIdentifiers ((JString str) : strs) = compile (Identifier str b) (JObject kvs) >>= (\inp -> (++) inp <$> extractIdentifiers strs)
+            extractIdentifiers _                    = Left "Can not index object with things other than string"
+
+compile (GenericIndex f b) (JArray js) = case compile f (JArray js) of 
+    Left str -> Left str
+    Right ns -> extractIndices ns
+        where
+            extractIndices []              = Right []
+            extractIndices ((JInt i): is)  = compile (Index i b) (JArray js) >>= (\inp -> (++) inp <$> extractIndices is)
+            extractIndices _               = Left "Can not index array with things other than integer"
+
+compile (GenericIndex _ b) _ = if b then return [] else Left "Can not index whatever it is"
+
 
 -- Array slice
 compile (Slice _ _ _) JNull        = return [JNull]
@@ -93,6 +110,14 @@ compile (JObjectFitler (Comma l r)) json = case compile (Comma l r) json of
 compile (JObjectFitler (JVal (JArray []))) _ = Right [JObject []]
 compile (JObjectFitler f) json = compile f json
 
+compile RecursiveDescent json = case json of
+    JArray js   -> do   i  <- compile Identity json 
+                        es <- mapM (compile RecursiveDescent) js
+                        return $ i ++ concat es
+    JObject kvs -> do   i <- compile Identity json 
+                        ss <- mapM (compile RecursiveDescent) $ map snd kvs
+                        return $ i ++ concat ss
+    _           -> do   compile Identity json
 
 
 compileKeys :: [JSON] -> Filter -> JSON -> Either String [JSON]
