@@ -188,9 +188,9 @@ parseCArray = do _  <- symbol "["
                
 -- JKeyPair (Filter, Filter)
 parseCKeyPair :: Parser Filter 
-parseCKeyPair = do key <- parseFilter <|> (JVal <$> (JString <$> parseSimpleString))
+parseCKeyPair = do key <- parseFilter <|> (JVal <$> (JString <$> parseSimpleString)) 
                    _   <- symbol ":"
-                   v   <- parseFilter
+                   v   <- parsePrimitive
                    return $ JKeyPair (key, v)
 
 -- Parser Filter
@@ -199,15 +199,18 @@ parseCKeyPairComma = do kp <- parseCKeyPair
                         _  <- symbol ","
                         Comma kp <$> parseCKeyPairComma 
                       <|>
-                        do str <- parseSimpleString
+                        do str <- parseSimpleString <|> parseCString
                            _   <- symbol ","
                            Comma (JKeyPair (JVal $ JString str, Identifier str False)) <$> parseCKeyPairComma
                       <|>
                         parseCKeyPair
                       <|>
-                        do str <- parseSimpleString
+                        do str <- parseSimpleString <|> parseCString
                            return $ JKeyPair (JVal $ JString str, Identifier str False)
 
+parseCString :: Parser String
+parseCString = do _ <- symbol "\""
+                  jString 
                         
 
 parseSimpleString :: Parser String

@@ -28,7 +28,7 @@ instance Show Filter where
   show (Pipe i o)           = show i ++ ", " ++ show o
   show (JVal j)             = show j
   show (JObjectFitler f)    = "{" ++ show f ++ "}"
-  show (JArrayFilter f)     = "[" ++ show f ++"]"
+  show (JArrayFilter f)     = "[" ++ show f ++ "]"
   show (JKeyPair (k, v))    = "(" ++ show k ++ show v ++ ")"
   show (GenericIndex f b)   = ".[" ++ show f ++ if b then "?" else "" ++ "]"
   show RecursiveDescent     = ".." 

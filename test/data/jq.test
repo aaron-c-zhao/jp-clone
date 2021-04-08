@@ -107,3 +107,42 @@ null
 {"a",b,"a$2"}
 {"a":1, "b":2, "c":3, "a$2":4}
 {"a":1, "b":2, "a$2":4}
+
+# additional tests
+.[-2:]
+["a","b","c","d","e"]
+["d", "e"]
+
+.[]
+[{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
+{"name":"JSON", "good":true}
+{"name":"XML", "good":false}
+
+.foo, .bar
+{"foo": 42, "bar": "something else", "baz": true}
+42
+"something else"
+
+.user, .projects[]
+{"user":"stedolan", "projects": ["jq", "wikiflow"]}
+"stedolan"
+"jq"
+"wikiflow"
+
+.[] | .name
+[{"name":"JSON", "good":true}, {"name":"XML", "good":false}]
+"JSON"
+"XML"
+
+[.user, .projects[]]
+{"user":"stedolan", "projects": ["jq", "wikiflow"]}
+["stedolan", "jq", "wikiflow"]
+
+{user, title: .titles[]}
+{"user":"stedolan","titles":["JQ Primer", "More JQ"]}
+{"user":"stedolan", "title": "JQ Primer"}
+{"user":"stedolan", "title": "More JQ"}
+
+{(.user): .titles}
+{"user":"stedolan","titles":["JQ Primer", "More JQ"]}
+{"stedolan": ["JQ Primer", "More JQ"]}
